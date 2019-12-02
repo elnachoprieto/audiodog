@@ -10,6 +10,8 @@ class Cancion(models.Model):
     artista = models.TextField(max_length=100)
     duracion = models.CharField(max_length=5)
     pais = models.ForeignKey('Pais', on_delete=models.CASCADE, null=False)
+    imagen = models.ImageField(verbose_name='Imagen', upload_to='cover', default='', null=False)
+    archivo = models.FileField(default='', null=False)
 
     registro_fecha = models.DateTimeField(
             default=timezone.now)
@@ -23,32 +25,14 @@ class Cancion(models.Model):
 
 class Usuario(models.Model):
 
-    REGION = [
-        (1, 'Arica y Parinacota'),
-        (2, 'Tarapacá'),
-        (3, 'Antofagasta'),
-        (4, 'Atacama'),
-        (5, 'Coquimbo'),
-        (6, 'Valparaíso'),
-        (7, 'Metropolitana'),
-        (8, 'O''Higgins'),
-        (9, 'Maule'),
-        (10, 'Ñuble'),
-        (11, 'Biobio'),
-        (12, 'Araucanía'),
-        (13, 'Los Rïos'),
-        (14, 'Los Lagos'),
-        (15, 'Aisén'),
-        (16, 'Magallanes'),
-    ]
-
-    usuario = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=500, default='', null=False)
     rut = models.CharField(max_length=10)
     email = models.TextField(max_length=100)
-    nacimiento_fecha = models.DateTimeField(
-            default=timezone.now)
+    nacimiento_fecha = models.DateTimeField(default=timezone.now)
     telefonos = models.CharField(max_length=100)
-    region = models.ForeignKey('Region', on_delete=models.CASCADE)
+
+    ciudad = models.ForeignKey('Ciudad', on_delete=models.CASCADE, default='', null=False)
+    dispositivo = models.TextField(max_length=100)
 
     registro_fecha = models.DateTimeField(
             default=timezone.now)
@@ -63,8 +47,7 @@ class Usuario(models.Model):
 class Region(models.Model):
 
     region = models.CharField(max_length=100)
-    registro_fecha = models.DateTimeField(
-            default=timezone.now)
+    registro_fecha = models.DateTimeField(default=timezone.now)
 
     def crear(self):
         self.registro_fecha = timezone.now()
@@ -75,11 +58,9 @@ class Region(models.Model):
 
 class Ciudad(models.Model):
 
-    ciudad = models.CharField(max_length=100)
+    ciudad = models.TextField(max_length=100)
     region = models.ForeignKey('Region', on_delete=models.CASCADE)
-
-    registro_fecha = models.DateTimeField(
-            default=timezone.now)
+    registro_fecha = models.DateTimeField(default=timezone.now)
 
     def crear(self):
         self.registro_fecha = timezone.now()
@@ -92,8 +73,7 @@ class Pais(models.Model):
 
     pais = models.CharField(max_length=100)
     gentilicio = models.TextField(max_length=100)
-    registro_fecha = models.DateTimeField(
-            default=timezone.now)
+    registro_fecha = models.DateTimeField(default=timezone.now)
 
     def crear(self):
         self.registro_fecha = timezone.now()
@@ -101,3 +81,21 @@ class Pais(models.Model):
 
     def __str__(self):
         return self.pais
+
+def file_get_contents(filename, use_include_path = 0, context = None, offset = -1, maxlen = -1):
+    if (filename.find('://') > 0):
+        ret = urllib2.urlopen(filename).read()
+        if (offset > 0):
+            ret = ret[offset:]
+        if (maxlen > 0):
+            ret = ret[:maxlen]
+        return ret
+    else:
+        fp = open(filename,'rb')
+        try:
+            if (offset > 0):
+                fp.seek(offset)
+            ret = fp.read(maxlen)
+            return ret
+        finally:
+            fp.close( )
